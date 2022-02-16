@@ -13,6 +13,7 @@
 #include "HttpServerThreadPoolAdapter.hpp"
 #include "HttpRegisterInterceptor.hpp"
 #include "HttpRegisterServer.hpp"
+#include "Utils.hpp"
 
 /**
  * @brief 基础服务部分
@@ -62,6 +63,11 @@ protected:
             r->SetProtocol(std::string(sv3.substr(0)));
             return r;
         }();
+        size_t methodIndex = request->GetUrl().find('?');
+        if (methodIndex != -1) {
+            std::vector<std::string_view> &&params = StrUtil::Split({request->GetUrl().c_str() + methodIndex + 1}, '&');
+            request->SetParams(StrUtil::PropertyParse(params));
+        }
 
         getline(ss, line);
         while (!line.empty()) {
@@ -74,6 +80,7 @@ protected:
             getline(ss, line);
             body += line;
         }
+
         request->SetBody(body);
         return request;
     }

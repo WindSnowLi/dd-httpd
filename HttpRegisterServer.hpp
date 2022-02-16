@@ -7,6 +7,7 @@
 #include "RequestMethod.hpp"
 #include <tuple>
 #include <regex>
+#include <string_view>
 
 /**
  * @brief Http服务链接注册器
@@ -36,11 +37,17 @@ protected:
     static void Execute(std::shared_ptr<HttpRequest> request, const std::shared_ptr<HttpResponse> response,
                         std::map<std::string, std::tuple<std::regex, std::function<void(HttpRequest &,
                                                                                         HttpResponse &)>>> &funMap) {
+        std::string_view sv(request->GetUrl());
+        size_t index;
+        if ((index = sv.find('?')) != -1) {
+            sv = std::string_view(request->GetUrl().c_str(), index);
+        }
         for (auto &&i : funMap) {
             [&](std::pair<const std::string, std::tuple<std::regex, std::function<void(HttpRequest &,
                                                                                        HttpResponse &)>>> &index) {
                 std::smatch results;
-                if (std::regex_match(request->GetUrl(), results, std::get<0>(index.second))) {
+                std::string urlRegex(sv);
+                if (std::regex_match(urlRegex, results, std::get<0>(index.second))) {
                     std::get<1>(index.second)(*request, *response);
                 }
             }(i);
@@ -68,7 +75,8 @@ public:
      */
     void RegisterPost(const std::string &url, const std::function<void(HttpRequest &, HttpResponse &)> &callback) {
         registerPostMap.insert(std::make_pair(url,
-                                              std::tuple<std::regex, std::function<void(HttpRequest&, HttpResponse&)>>(
+                                              std::tuple<std::regex, std::function<void(HttpRequest &,
+                                                                                        HttpResponse &)>>(
                                                       std::regex(url), callback)));
     }
 

@@ -78,10 +78,12 @@ public:
         if (package) {
             rsp.clear();
             rsp << this->GetProtocol() << ' ' << this->GetCode() << ' ' << this->GetDesc() << "\r\n";
+            rsp << CONTENT_LENGTH << this->GetBody().size() << "\r\n";
+
             for_each(this->GetHeaderMap().begin(),
                      this->GetHeaderMap().end(),
                      [&](const std::pair<std::string, std::string> &index) {
-                        rsp << index.first << ':' << index.second << "\r\n";
+                         rsp << index.first << ':' << index.second << "\r\n";
                      });
             rsp << "\r\n" << this->GetBody();
             package = false;

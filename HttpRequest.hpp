@@ -5,8 +5,7 @@
 #include "RequestMethod.hpp"
 #include "BaseInfo.hpp"
 
-class HttpRequest
-{
+class HttpRequest {
 protected:
     /**
      * @brief 请求方法
@@ -35,23 +34,33 @@ protected:
      */
     std::string body{};
 
+
+    std::map<std::string, std::string> params;
 public:
+
+    [[nodiscard]] const std::map<std::string, std::string> &GetParams() const {
+        return params;
+    }
+
+    void SetParams(const std::map<std::string, std::string> &map) {
+        this->params = map;
+    }
+
     /**
      * @brief Get the Method object
      *
      * @return const RequestMethod& 请求方法
      */
-    const RequestMethod &GetMethod() const
-    {
+    [[nodiscard]] const RequestMethod &GetMethod() const {
         return requestMethod;
     }
+
     /**
      * @brief Set the Method object
      *
      * @param r
      */
-    void SetMethod(RequestMethod r)
-    {
+    void SetMethod(RequestMethod r) {
         this->requestMethod = r;
     }
 
@@ -60,53 +69,43 @@ public:
      *
      * @return const std::string&
      */
-    const std::string &GetUrl() const
-    {
+    const std::string &GetUrl() const {
         return url;
     }
 
-    void SetUrl(const std::string &u)
-    {
+    void SetUrl(const std::string &u) {
         this->url = u;
     }
 
-    void SetProtocol(const std::string &p)
-    {
+    void SetProtocol(const std::string &p) {
         this->protocol = p;
     }
 
-    const std::string &GetProtocol() const
-    {
+    const std::string &GetProtocol() const {
         return protocol;
     }
 
-    const std::string &GetBody() const
-    {
+    const std::string &GetBody() const {
         return body;
     }
 
-    void SetBody(const std::string &str)
-    {
+    void SetBody(const std::string &str) {
         this->body = str;
     }
 
-    void AddHeader(const std::string &key, const std::string &value)
-    {
+    void AddHeader(const std::string &key, const std::string &value) {
         this->header.insert(std::make_pair(key, value));
     }
 
-    const std::string &GetHeader(const std::string &key) const
-    {
+    const std::string &GetHeader(const std::string &key) const {
         return this->header.at(key);
     }
 
-    void SetHeaderMap(const std::map<std::string, std::string> &map)
-    {
+    void SetHeaderMap(const std::map<std::string, std::string> &map) {
         this->header = map;
     }
 
-    const std::map<std::string, std::string> &GetHeaderMap() const
-    {
+    const std::map<std::string, std::string> &GetHeaderMap() const {
         return this->header;
     }
 };
