@@ -7,6 +7,10 @@
 
 #include "BaseInfo.hpp"
 
+#ifndef NOT_FOUNT
+#define NOT_FOUNT 404
+#endif
+
 class HttpResponse {
 protected:
     std::string protocol{PROTOCOL};
@@ -16,6 +20,7 @@ protected:
     std::string desc{};
     std::stringstream rsp{};
     bool package = true;
+
 public:
 
     HttpResponse() = default;
@@ -26,8 +31,12 @@ public:
 
     }
 
-    void SetProtocol(const std::string &p) {
-        this->protocol = p;
+    size_t getCode() const {
+        return code;
+    }
+
+    void setCode(size_t c) {
+        this->code = c;
     }
 
     const std::string &GetProtocol() const {

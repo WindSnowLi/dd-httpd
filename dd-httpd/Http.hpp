@@ -61,10 +61,10 @@ public:
      *
      * @param httpRegisterServer 使用注册器
      */
-    Http(int port, const std::shared_ptr<HttpRegisterServer> &httpRegisterServer,
+    Http(int port, std::shared_ptr<HttpRegisterServer> httpRegisterServer,
          std::shared_ptr<NetworkAdapter> netWorkAdapter =
          std::make_shared<SocketNetworkAdapter>()) : port(port),
-                                                     httpRegisterServer(httpRegisterServer),
+                                                     httpRegisterServer(std::move(httpRegisterServer)),
                                                      networkAdapter(std::move(netWorkAdapter)) {
     }
 
@@ -77,12 +77,12 @@ public:
             httpServer = std::make_shared<HttpServer>();
             httpServer->httpRegisterInterceptor = httpRegisterInterceptor;
             httpServer->httpRegisterServer = httpRegisterServer;
-            httpServer->httpServerThreadPoolAdapter = std::make_shared<HttpServerThreadPoolAdapter>();
+            httpServer->threadPool = std::make_shared<ThreadPool>();
         }
         if (networkServer == nullptr) {
             networkServer = std::make_shared<NetworkServer>();
             networkServer->networkRegisterInterceptor = networkRegisterInterceptor;
-            networkServer->networkServerThreadPoolAdapter = std::make_shared<NetworkServerThreadPoolAdapter>();
+            networkServer->threadPool = std::make_shared<ThreadPool>();
             networkServer->httpServer = httpServer;
         }
 

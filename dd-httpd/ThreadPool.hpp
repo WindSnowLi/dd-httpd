@@ -80,7 +80,7 @@ protected:
 
     std::vector<std::shared_ptr<ThreadAdapter>> t;
 public:
-    explicit ThreadPool(int s) {
+    explicit ThreadPool(int s = 20) {
         for (int i = 0; i < s; ++i) {
             auto p = std::make_shared<ThreadAdapter>(fq, cv, fqM);
             t.emplace_back(std::move(p));

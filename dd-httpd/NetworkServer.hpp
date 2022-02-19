@@ -4,9 +4,9 @@
 #include <functional>
 #include <string>
 #include <memory>
+#include <utility>
 
 #include "NetworkRegisterInterceptor.hpp"
-#include "NetworkServerThreadPoolAdapter.hpp"
 #include "HttpServer.hpp"
 
 #ifdef _WIN32
@@ -23,11 +23,12 @@ public:
      *
      */
     std::shared_ptr<NetworkRegisterInterceptor> networkRegisterInterceptor;
+
     /**
-     * @brief 监听线程适配器
+     * @brief 线程池
      *
      */
-    std::shared_ptr<NetworkServerThreadPoolAdapter> networkServerThreadPoolAdapter;
+    std::shared_ptr<ThreadPool> threadPool;
     /**
      * @brief Http数据解析服务
      *
@@ -42,8 +43,8 @@ public:
      * @param client 网络适配器
      */
     void Accept(std::shared_ptr<NetworkAdapter> client) {
-        this->networkServerThreadPoolAdapter->AddTask(
-                [s = networkRegisterInterceptor, h = httpServer, c = client]() {
+        this->threadPool->AddTask(
+                [s = networkRegisterInterceptor, h = httpServer, c = std::move(client)]() {
                     if (s != nullptr && !s->Verify(c)) {
                         return;
                     }

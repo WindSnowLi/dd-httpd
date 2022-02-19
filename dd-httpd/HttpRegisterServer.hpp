@@ -8,6 +8,11 @@
 #include <tuple>
 #include <regex>
 #include <string_view>
+#include <set>
+#include "Utils.hpp"
+#include <fstream>
+#include <filesystem>
+#include <iostream>
 
 /**
  * @brief Http服务链接注册器
@@ -26,6 +31,24 @@ protected:
      */
     std::map<std::string, std::tuple<std::regex, std::function<void(HttpRequest &, HttpResponse &)>>> registerPostMap;
 
+    std::string rootPath{"./"};
+public:
+
+    [[nodiscard]] const std::string &GetRootPath() const {
+        return rootPath;
+    }
+
+    void SetRootPath(const std::string &path) {
+        if (path.length() == 0) {
+            return;
+        }
+        this->rootPath = path;
+        StrUtil::ReplaceChar(this->rootPath, '\\', '/');
+        if (rootPath.back() == '/') {
+            rootPath.erase(rootPath.back());
+        }
+    }
+
 protected:
     /**
      * @brief 执行功能体
@@ -34,7 +57,7 @@ protected:
      * @param response 应答体智能指针
      * @param funMap 回调映射
      */
-    static void Execute(std::shared_ptr<HttpRequest> request, const std::shared_ptr<HttpResponse> response,
+    static bool Execute(std::shared_ptr<HttpRequest> request, const std::shared_ptr<HttpResponse> response,
                         std::map<std::string, std::tuple<std::regex, std::function<void(HttpRequest &,
                                                                                         HttpResponse &)>>> &funMap) {
         std::string_view sv(request->GetUrl());
@@ -43,14 +66,48 @@ protected:
             sv = std::string_view(request->GetUrl().c_str(), index);
         }
         for (auto &&i : funMap) {
-            [&](std::pair<const std::string, std::tuple<std::regex, std::function<void(HttpRequest &,
-                                                                                       HttpResponse &)>>> &index) {
+            if ([&](std::pair<const std::string, std::tuple<std::regex, std::function<void(HttpRequest &,
+                                                                                           HttpResponse &)>>> &index) {
                 std::smatch results;
                 std::string urlRegex(sv);
                 if (std::regex_match(urlRegex, results, std::get<0>(index.second))) {
                     std::get<1>(index.second)(*request, *response);
+                    return true;
                 }
-            }(i);
+                return false;
+            }(i)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static void GetFile(const std::shared_ptr<HttpRequest> &request, const std::shared_ptr<HttpResponse> &response,
+                        const std::string &path) {
+        std::string_view sv = request->GetUrl();
+        size_t index;
+        if ((index = sv.find('?')) != -1) {
+            sv = std::string_view(request->GetUrl().c_str(), index);
+        }
+
+        std::string absolutePath = path + std::string(sv);
+        if (std::filesystem::exists(std::filesystem::u8path(absolutePath)) && StrUtil::CheckPathDeepin(absolutePath)) {
+            if (std::filesystem::is_directory(std::filesystem::u8path(absolutePath))) {
+                absolutePath.append("index.html");
+            }
+            std::ifstream fp(std::filesystem::u8path(absolutePath), std::ios::binary | std::ios::in);
+            if (fp) {
+                size_t length = FileUtils::GetFileLength(absolutePath);
+                std::unique_ptr<char[]> buff(new char[length]);
+                fp.read(buff.get(), static_cast<long long>(length));
+                std::stringstream ss;
+                ss.write(buff.get(), static_cast<long long>(length));
+                response->SetBody(ss.str());
+            } else {
+                response->setCode(NOT_FOUNT);
+            }
+        } else {
+            response->setCode(NOT_FOUNT);
         }
     }
 
@@ -89,11 +146,14 @@ public:
     void MapRequest(const std::shared_ptr<HttpRequest> &request, const std::shared_ptr<HttpResponse> &response) {
         switch (request->GetMethod()) {
             case RequestMethod::GET:
-                Execute(request, response, registerGetMap);
+                if (!Execute(request, response, registerGetMap)) {
+                    GetFile(request, response, rootPath);
+                }
                 break;
             case RequestMethod::POST:
                 Execute(request, response, registerPostMap);
                 break;
         }
     }
+
 };

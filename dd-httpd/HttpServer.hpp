@@ -6,14 +6,15 @@
 #include <memory>
 #include <sstream>
 #include <string_view>
+#include <utility>
 
 #include "HttpRequest.hpp"
 #include "HttpResponse.hpp"
 #include "RequestMethod.hpp"
-#include "HttpServerThreadPoolAdapter.hpp"
 #include "HttpRegisterInterceptor.hpp"
 #include "HttpRegisterServer.hpp"
 #include "Utils.hpp"
+#include "ThreadPool.hpp"
 
 /**
  * @brief 基础服务部分
@@ -22,10 +23,10 @@
 class HttpServer {
 public:
     /**
-     * @brief 线程适配器
+     * @brief 线程池
      *
      */
-    std::shared_ptr<HttpServerThreadPoolAdapter> httpServerThreadPoolAdapter;
+    std::shared_ptr<ThreadPool> threadPool;
 
     /**
      * @brief Http拦截器注册器
@@ -45,7 +46,7 @@ protected:
      * @param client 网络适配器
      * @return std::shared_ptr<HttpRequest>
      */
-    static std::shared_ptr<HttpRequest> Parse(std::shared_ptr<NetworkAdapter> client) {
+    static std::shared_ptr<HttpRequest> Parse(const std::shared_ptr<NetworkAdapter>& client) {
         std::stringstream &&ss = client->Read();
         std::string line{};
         getline(ss, line);
@@ -91,7 +92,7 @@ protected:
      * @param client 网络适配器
      * @param response 应答体
      */
-    static void Response(std::shared_ptr<NetworkAdapter> client, std::shared_ptr<HttpResponse> response) {
+    static void Response(const std::shared_ptr<NetworkAdapter>& client, std::shared_ptr<HttpResponse> response) {
         client->Write(response->GetHttpPackage());
     }
 
@@ -102,8 +103,8 @@ public:
      * @param client 网络适配器
      */
     void AcceptHttp(std::shared_ptr<NetworkAdapter> client) {
-        httpServerThreadPoolAdapter->AddTask(
-                [h = httpRegisterInterceptor, s = httpRegisterServer, c = client]() {
+        threadPool->AddTask(
+                [h = httpRegisterInterceptor, s = httpRegisterServer, c = std::move(client)]() {
                     auto request = Parse(c);
                     std::shared_ptr<HttpResponse> response = std::make_shared<HttpResponse>();
                     // 验证前置拦截器
