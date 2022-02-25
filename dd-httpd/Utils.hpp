@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <filesystem>
+#include <string_view>
 
 namespace StrUtil {
     std::vector<std::string_view> Split(std::string_view sv, char ch) {

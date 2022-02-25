@@ -5,12 +5,28 @@
 int main() {
     std::shared_ptr<HttpRegisterServer> server = std::make_shared<HttpRegisterServer>();
     server->RegisterGet("/hello", [&](HttpRequest &request, HttpResponse &response) {
-        std::cout << "hello" << std::endl;
+        std::cout << "Hello GET!" << std::endl;
 
         for (auto &&i: request.GetParams()) {
             std::cout << i.first << '\t' << i.second << std::endl;
         }
         response.SetBody(std::string("I LOVE YOU!"));
+    });
+    server->RegisterPost("/hello", [&](HttpRequest &request, HttpResponse &response) {
+        std::cout << "Hello POST!" << std::endl;
+        std::cout << request.GetBody() << std::endl;
+        for (auto &&i: request.GetParams()) {
+            std::cout << i.first << '\t' << i.second << std::endl;
+        }
+        response.SetBody(std::string("ME TOO!"));
+    });
+    server->RegisterHead("/hello", [&](HttpRequest &request, HttpResponse &response) {
+        std::cout << "Hello HEAD!" << std::endl;
+        std::cout << request.GetBody() << std::endl;
+        for (auto &&i: request.GetParams()) {
+            std::cout << i.first << '\t' << i.second << std::endl;
+        }
+        response.SetBody(std::string("I THINK...!"));
     });
     server->SetRootPath(std::string("."));
     Http http(52113, server);

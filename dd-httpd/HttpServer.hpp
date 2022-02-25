@@ -46,7 +46,7 @@ protected:
      * @param client 网络适配器
      * @return std::shared_ptr<HttpRequest>
      */
-    static std::shared_ptr<HttpRequest> Parse(const std::shared_ptr<NetworkAdapter>& client) {
+    static std::shared_ptr<HttpRequest> Parse(const std::shared_ptr<NetworkAdapter> &client) {
         std::stringstream &&ss = client->Read();
         std::string line{};
         getline(ss, line);
@@ -71,9 +71,10 @@ protected:
         }
 
         getline(ss, line);
-        while (!line.empty()) {
+        while (!line.empty() && line[0] != '\r') {
             size_t split = line.find(':');
             request->AddHeader(line.substr(0, split), line.substr(split + 1));
+            line.clear();
             getline(ss, line);
         }
         std::string body{};
@@ -81,7 +82,6 @@ protected:
             getline(ss, line);
             body += line;
         }
-
         request->SetBody(body);
         return request;
     }
@@ -92,7 +92,7 @@ protected:
      * @param client 网络适配器
      * @param response 应答体
      */
-    static void Response(const std::shared_ptr<NetworkAdapter>& client, std::shared_ptr<HttpResponse> response) {
+    static void Response(const std::shared_ptr<NetworkAdapter> &client, const std::shared_ptr<HttpResponse> &response) {
         client->Write(response->GetHttpPackage());
     }
 
@@ -107,6 +107,7 @@ public:
                 [h = httpRegisterInterceptor, s = httpRegisterServer, c = std::move(client)]() {
                     auto request = Parse(c);
                     std::shared_ptr<HttpResponse> response = std::make_shared<HttpResponse>();
+                    response->SetRequestMethod(request->GetMethod());
                     // 验证前置拦截器
                     if (h != nullptr && h->VerifyBefore(request, response)) {
                         return;

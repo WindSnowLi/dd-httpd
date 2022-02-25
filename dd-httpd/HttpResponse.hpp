@@ -20,6 +20,15 @@ protected:
     std::string desc{};
     std::stringstream rsp{};
     bool package = true;
+    RequestMethod requestMethod;
+public:
+    RequestMethod getRequestMethod() const {
+        return requestMethod;
+    }
+
+    void SetRequestMethod(RequestMethod method) {
+        HttpResponse::requestMethod = method;
+    }
 
 public:
 
@@ -27,7 +36,9 @@ public:
 
     HttpResponse(const HttpResponse &httpResponse) : protocol(httpResponse.protocol), code(httpResponse.code),
                                                      header(httpResponse.header),
-                                                     body(httpResponse.body), package(true) {
+                                                     body(httpResponse.body),
+                                                     package(true),
+                                                     requestMethod(httpResponse.requestMethod) {
 
     }
 
@@ -94,7 +105,10 @@ public:
                      [&](const std::pair<std::string, std::string> &index) {
                          rsp << index.first << ':' << index.second << "\r\n";
                      });
-            rsp << "\r\n" << this->GetBody();
+            rsp << "\r\n";
+            if (this->requestMethod != RequestMethod::HEAD) {
+                rsp << this->GetBody();
+            }
             package = false;
         }
         return rsp;

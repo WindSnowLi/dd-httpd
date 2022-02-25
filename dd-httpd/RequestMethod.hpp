@@ -8,7 +8,8 @@
  */
 enum class RequestMethod {
     GET,
-    POST
+    POST,
+    HEAD
 };
 
 inline std::string EnumToStr(RequestMethod r) {
@@ -17,14 +18,16 @@ inline std::string EnumToStr(RequestMethod r) {
             return "GET";
         case RequestMethod::POST:
             return "POST";
+        case RequestMethod::HEAD:
+            return "HEAD";
     }
 }
 
 inline RequestMethod StrToEnum(const std::string &str) {
-    if (str == "GET") {
-        return RequestMethod::GET;
-    } else if (str == "POST") {
+    if (str == "POST") {
         return RequestMethod::POST;
+    } else if (str == "HEAD") {
+        return RequestMethod::HEAD;
     } else {
         return RequestMethod::GET;
     }

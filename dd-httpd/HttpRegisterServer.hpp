@@ -31,6 +31,8 @@ protected:
      */
     std::map<std::string, std::tuple<std::regex, std::function<void(HttpRequest &, HttpResponse &)>>> registerPostMap;
 
+    std::map<std::string, std::tuple<std::regex, std::function<void(HttpRequest &, HttpResponse &)>>> registerHeadMap;
+
     std::string rootPath{"./"};
 public:
 
@@ -137,6 +139,13 @@ public:
                                                       std::regex(url), callback)));
     }
 
+    void RegisterHead(const std::string &url, const std::function<void(HttpRequest &, HttpResponse &)> &callback) {
+        registerPostMap.insert(std::make_pair(url,
+                                              std::tuple<std::regex, std::function<void(HttpRequest &,
+                                                                                        HttpResponse &)>>(
+                                                      std::regex(url), callback)));
+    }
+
     /**
      * @brief 映射请求
      *
@@ -152,6 +161,9 @@ public:
                 break;
             case RequestMethod::POST:
                 Execute(request, response, registerPostMap);
+                break;
+            case RequestMethod::HEAD:
+                Execute(request, response, registerHeadMap);
                 break;
         }
     }
