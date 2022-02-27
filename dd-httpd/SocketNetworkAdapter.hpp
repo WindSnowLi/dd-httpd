@@ -1,7 +1,7 @@
 #pragma once
 
 #include <sstream>
-
+#include <fstream>
 #include "NetworkAdapter.hpp"
 
 #ifdef _WIN32
@@ -86,6 +86,16 @@ public:
      */
     void Write(const std::stringstream &str) override {
         send(this->socket, str.str().c_str(), (int) str.str().length(), 0);
+    }
+
+    void Write(std::ifstream &fp) override {
+        if (!fp) {
+            return;
+        }
+        while (size_t rLen = fp.readsome(buff, sizeof buff)) {
+            send(this->socket, buff, (int) rLen, 0);
+        }
+        fp.close();
     }
 
     /**

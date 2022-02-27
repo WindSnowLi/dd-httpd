@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <filesystem>
 
 #include "RequestMethod.hpp"
 #include "BaseInfo.hpp"
@@ -36,76 +37,66 @@ protected:
 
 
     std::map<std::string, std::string> params;
+
+    std::string filePath{};
 public:
+    [[nodiscard]] RequestMethod GetRequestMethod() const {
+        return requestMethod;
+    }
+
+    void SetRequestMethod(RequestMethod method) {
+        HttpRequest::requestMethod = method;
+    }
+
+    [[nodiscard]] const std::string &GetUrl() const {
+        return url;
+    }
+
+    void SetUrl(const std::string &u) {
+        HttpRequest::url = u;
+    }
+
+    [[maybe_unused]] [[nodiscard]] const std::string &GetProtocol() const {
+        return protocol;
+    }
+
+    void SetProtocol(const std::string &p) {
+        protocol = p;
+    }
+
+    [[maybe_unused]] [[nodiscard]] const std::map<std::string, std::string> &GetHeader() const {
+        return header;
+    }
+
+    [[maybe_unused]] void SetHeader(const std::map<std::string, std::string> &map) {
+        HttpRequest::header = map;
+    }
+
+    [[nodiscard]] const std::string &GetBody() const {
+        return body;
+    }
+
+    void SetBody(const std::string &b) {
+        HttpRequest::body = b;
+    }
 
     [[nodiscard]] const std::map<std::string, std::string> &GetParams() const {
         return params;
     }
 
     void SetParams(const std::map<std::string, std::string> &map) {
-        this->params = map;
+        HttpRequest::params = map;
     }
 
-    /**
-     * @brief Get the Method object
-     *
-     * @return const RequestMethod& 请求方法
-     */
-    [[nodiscard]] const RequestMethod &GetMethod() const {
-        return requestMethod;
+    std::string &GetFilePath() {
+        return filePath;
     }
 
-    /**
-     * @brief Set the Method object
-     *
-     * @param r
-     */
-    void SetMethod(RequestMethod r) {
-        this->requestMethod = r;
-    }
-
-    /**
-     * @brief Get the Url object
-     *
-     * @return const std::string&
-     */
-    const std::string &GetUrl() const {
-        return url;
-    }
-
-    void SetUrl(const std::string &u) {
-        this->url = u;
-    }
-
-    void SetProtocol(const std::string &p) {
-        this->protocol = p;
-    }
-
-    const std::string &GetProtocol() const {
-        return protocol;
-    }
-
-    const std::string &GetBody() const {
-        return body;
-    }
-
-    void SetBody(const std::string &str) {
-        this->body = str;
+    void SetFilePath(const std::string &path) {
+        HttpRequest::filePath = path;
     }
 
     void AddHeader(const std::string &key, const std::string &value) {
         this->header.insert(std::make_pair(key, value));
-    }
-
-    const std::string &GetHeader(const std::string &key) const {
-        return this->header.at(key);
-    }
-
-    void SetHeaderMap(const std::map<std::string, std::string> &map) {
-        this->header = map;
-    }
-
-    const std::map<std::string, std::string> &GetHeaderMap() const {
-        return this->header;
     }
 };

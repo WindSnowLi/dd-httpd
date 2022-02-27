@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <sstream>
+#include <fstream>
 
 class NetworkAdapter {
 public:
@@ -16,6 +17,9 @@ public:
      *
      */
     unsigned long addr{};
+
+
+    char buff[2048]{0};
 
 public:
     explicit NetworkAdapter() = default;
@@ -36,11 +40,18 @@ public:
     virtual std::stringstream Read() = 0;
 
     /**
-     * @brief 写入单字节
+     * @brief 写入字符串流对象
      *
      * @param str 写入的完整字符串流
      */
     virtual void Write(const std::stringstream &str) = 0;
+
+    /**
+     * @brief 写入文件
+     *
+     * @param fp 文件
+     */
+    virtual void Write(std::ifstream &fp) = 0;
 
     /**
      * @brief 开始监听

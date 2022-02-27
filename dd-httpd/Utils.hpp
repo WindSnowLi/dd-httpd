@@ -49,8 +49,8 @@ namespace StrUtil {
         std::vector<std::string_view> svs = Split((temp), '/');
         int count = 0;
         std::string pre = "..";
-        for (auto &&i: svs) {
-            if (i.empty()){
+        for (auto &&i : svs) {
+            if (i.empty()) {
                 continue;
             }
             if (i != pre) {
@@ -66,18 +66,30 @@ namespace StrUtil {
     }
 }
 
-namespace FileUtils{
-    size_t GetFileLength(const std::string& path){
+namespace FileUtils {
+    size_t GetFileLength(const std::string &path);
+
+    size_t GetFileStreamLength(std::ifstream &fp);
+
+    size_t GetFileLength(const std::string &path) {
         std::ifstream fp(std::filesystem::u8path(path), std::ios::in);
-        if (!fp){
+        if (!fp) {
+            return 0;
+        }
+        size_t length = GetFileStreamLength(fp);
+        fp.close();
+        return length;
+    }
+
+    size_t GetFileStreamLength(std::ifstream &fp) {
+        if (!fp) {
             return 0;
         }
         //定位到文件末尾
         fp.seekg(0, std::ifstream::end);
         //获得文件总长度
         size_t length = fp.tellg();
-        fp.close();
+        fp.seekg(0, std::ifstream::beg);
         return length;
-
     }
 }

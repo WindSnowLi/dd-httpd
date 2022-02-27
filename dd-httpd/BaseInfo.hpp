@@ -5,5 +5,5 @@
 #endif
 
 #ifndef CONTENT_LENGTH
-#define CONTENT_LENGTH "content_length"
+#define CONTENT_LENGTH "content-length"
 #endif

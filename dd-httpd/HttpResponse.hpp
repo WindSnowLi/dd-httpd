@@ -18,18 +18,8 @@ protected:
     std::map<std::string, std::string> header;
     std::string body{};
     std::string desc{};
-    std::stringstream rsp{};
-    bool package = true;
     RequestMethod requestMethod;
-public:
-    RequestMethod getRequestMethod() const {
-        return requestMethod;
-    }
-
-    void SetRequestMethod(RequestMethod method) {
-        HttpResponse::requestMethod = method;
-    }
-
+    size_t length = 0;
 public:
 
     HttpResponse() = default;
@@ -37,12 +27,19 @@ public:
     HttpResponse(const HttpResponse &httpResponse) : protocol(httpResponse.protocol), code(httpResponse.code),
                                                      header(httpResponse.header),
                                                      body(httpResponse.body),
-                                                     package(true),
                                                      requestMethod(httpResponse.requestMethod) {
 
     }
 
-    size_t getCode() const {
+    [[nodiscard]] size_t GetLength() const {
+        return length;
+    }
+
+    void setLength(size_t i) {
+        HttpResponse::length = i;
+    }
+
+    [[nodiscard]] size_t GetCode() const {
         return code;
     }
 
@@ -50,67 +47,65 @@ public:
         this->code = c;
     }
 
-    const std::string &GetProtocol() const {
+    [[nodiscard]] const std::string &GetProtocol() const {
         return protocol;
     }
 
-    size_t GetCode() const {
-        return code;
-    }
-
-    void AddHeader(const std::string &key, const std::string &value) {
+    [[maybe_unused]] void AddHeader(const std::string &key, const std::string &value) {
         this->header.insert(std::make_pair(key, value));
-        package = true;
     }
 
-    const std::string &GetHeader(const std::string &key) const {
+    [[maybe_unused]] [[nodiscard]] const std::string &GetHeader(const std::string &key) const {
         return this->header.at(key);
     }
 
-    void SetHeaderMap(const std::map<std::string, std::string> &map) {
+    [[maybe_unused]] void SetHeaderMap(const std::map<std::string, std::string> &map) {
         this->header = map;
-        package = true;
     }
 
-    const std::map<std::string, std::string> &GetHeaderMap() const {
+    [[nodiscard]] const std::map<std::string, std::string> &GetHeaderMap() const {
         return this->header;
     }
 
-    const std::string &GetBody() const {
+    [[nodiscard]] const std::string &GetBody() const {
         return body;
     }
 
     void SetBody(const std::string &str) {
         this->body = str;
-        package = true;
+        this->length = this->body.size();
     }
 
-    const std::string &GetDesc() const {
+    [[maybe_unused]] [[nodiscard]] RequestMethod GetRequestMethod() const {
+        return requestMethod;
+    }
+
+    void SetRequestMethod(RequestMethod method) {
+        HttpResponse::requestMethod = method;
+    }
+
+    [[nodiscard]] const std::string &GetDesc() const {
         return desc;
     }
 
-    void SetDesc(const std::string &str) {
+    [[maybe_unused]] void SetDesc(const std::string &str) {
         this->desc = str;
-        package = true;
     }
 
-    const std::stringstream &GetHttpPackage() {
-        if (package) {
-            rsp.clear();
-            rsp << this->GetProtocol() << ' ' << this->GetCode() << ' ' << this->GetDesc() << "\r\n";
-            rsp << CONTENT_LENGTH << this->GetBody().size() << "\r\n";
-
-            for_each(this->GetHeaderMap().begin(),
-                     this->GetHeaderMap().end(),
-                     [&](const std::pair<std::string, std::string> &index) {
-                         rsp << index.first << ':' << index.second << "\r\n";
-                     });
-            rsp << "\r\n";
-            if (this->requestMethod != RequestMethod::HEAD) {
-                rsp << this->GetBody();
-            }
-            package = false;
-        }
+    [[nodiscard]] std::stringstream GetHeadStream() const {
+        std::stringstream rsp{};
+        rsp << GetProtocol() << ' '
+            << GetCode() << ' '
+            << GetDesc() << "\r\n"
+            << CONTENT_LENGTH << ':'
+            << GetLength() << "\r\n";
+        for_each(GetHeaderMap().begin(),
+                 GetHeaderMap().end(),
+                 [&](const std::pair<std::string, std::string> &index) {
+                     rsp << index.first << ':' << index.second << "\r\n";
+                 });
+        rsp << "\r\n";
         return rsp;
     }
 };
+

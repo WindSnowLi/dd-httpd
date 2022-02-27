@@ -54,7 +54,7 @@ protected:
             auto r = std::make_shared<HttpRequest>();
             std::string_view sv1(line);
             size_t first = sv1.find(' ');
-            r->SetMethod(StrToEnum(std::string(sv1.substr(0, first))));
+            r->SetRequestMethod(StrToEnum(std::string(sv1.substr(0, first))));
 
             std::string_view sv2(line.c_str() + first + 1);
             size_t second = sv2.find(' ');
@@ -92,8 +92,42 @@ protected:
      * @param client 网络适配器
      * @param response 应答体
      */
-    static void Response(const std::shared_ptr<NetworkAdapter> &client, const std::shared_ptr<HttpResponse> &response) {
-        client->Write(response->GetHttpPackage());
+    static void Response(const std::shared_ptr<NetworkAdapter> &client,
+                         const std::shared_ptr<HttpRequest> &request,
+                         const std::shared_ptr<HttpResponse> &response) {
+
+        if (!request->GetFilePath().empty()) {
+            auto sysPath = std::filesystem::u8path(request->GetFilePath());
+            if (std::filesystem::exists(sysPath) &&
+                StrUtil::CheckPathDeepin(request->GetFilePath())) {
+                if (std::filesystem::is_directory(sysPath)) {
+                    request->GetFilePath().append("/index.html");
+                }
+                std::ifstream fp;
+                fp.open(request->GetFilePath(), std::ios::in);
+                if (!fp) {
+                    response->setCode(NOT_FOUNT);
+                } else {
+                    response->setLength(FileUtils::GetFileStreamLength(fp));
+                }
+            } else {
+                response->setCode(NOT_FOUNT);
+            }
+        }
+
+        client->Write(response->GetHeadStream());
+
+        if (request->GetRequestMethod() == RequestMethod::HEAD) {
+            return;
+        }
+        if (request->GetFilePath().empty()) {
+            client->Write(std::stringstream(response->GetBody()));
+        } else {
+            std::ifstream fp;
+            fp.open(request->GetFilePath(), std::ios::in | std::ios::binary);
+            client->Write(fp);
+            fp.close();
+        }
     }
 
 public:
@@ -107,7 +141,7 @@ public:
                 [h = httpRegisterInterceptor, s = httpRegisterServer, c = std::move(client)]() {
                     auto request = Parse(c);
                     std::shared_ptr<HttpResponse> response = std::make_shared<HttpResponse>();
-                    response->SetRequestMethod(request->GetMethod());
+                    response->SetRequestMethod(request->GetRequestMethod());
                     // 验证前置拦截器
                     if (h != nullptr && h->VerifyBefore(request, response)) {
                         return;
@@ -118,7 +152,7 @@ public:
                     if (h != nullptr && h->VerifyAfter(request, response)) {
                         return;
                     }
-                    Response(c, response);
+                    Response(c, request, response);
                 });
     }
 };

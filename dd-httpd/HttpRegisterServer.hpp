@@ -36,10 +36,6 @@ protected:
     std::string rootPath{"./"};
 public:
 
-    [[nodiscard]] const std::string &GetRootPath() const {
-        return rootPath;
-    }
-
     void SetRootPath(const std::string &path) {
         if (path.length() == 0) {
             return;
@@ -91,26 +87,7 @@ protected:
         if ((index = sv.find('?')) != -1) {
             sv = std::string_view(request->GetUrl().c_str(), index);
         }
-
-        std::string absolutePath = path + std::string(sv);
-        if (std::filesystem::exists(std::filesystem::u8path(absolutePath)) && StrUtil::CheckPathDeepin(absolutePath)) {
-            if (std::filesystem::is_directory(std::filesystem::u8path(absolutePath))) {
-                absolutePath.append("index.html");
-            }
-            std::ifstream fp(std::filesystem::u8path(absolutePath), std::ios::binary | std::ios::in);
-            if (fp) {
-                size_t length = FileUtils::GetFileLength(absolutePath);
-                std::unique_ptr<char[]> buff(new char[length]);
-                fp.read(buff.get(), static_cast<long long>(length));
-                std::stringstream ss;
-                ss.write(buff.get(), static_cast<long long>(length));
-                response->SetBody(ss.str());
-            } else {
-                response->setCode(NOT_FOUNT);
-            }
-        } else {
-            response->setCode(NOT_FOUNT);
-        }
+        request->SetFilePath(path + std::string(sv));
     }
 
 public:
@@ -153,7 +130,7 @@ public:
      * @param response 应答对象智能指针
      */
     void MapRequest(const std::shared_ptr<HttpRequest> &request, const std::shared_ptr<HttpResponse> &response) {
-        switch (request->GetMethod()) {
+        switch (request->GetRequestMethod()) {
             case RequestMethod::GET:
                 if (!Execute(request, response, registerGetMap)) {
                     GetFile(request, response, rootPath);
@@ -163,7 +140,9 @@ public:
                 Execute(request, response, registerPostMap);
                 break;
             case RequestMethod::HEAD:
-                Execute(request, response, registerHeadMap);
+                if (!Execute(request, response, registerHeadMap)) {
+                    GetFile(request, response, rootPath);
+                }
                 break;
         }
     }
