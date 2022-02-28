@@ -16,8 +16,8 @@ public:
      * @return false 拒绝
      */
     bool Verify(const std::shared_ptr<NetworkAdapter> &client) {
-        for (auto interceptor : interceptorSet) {
-            if (!((NetworkInterceptor *) &(interceptor))->AcceptAfter(client)) {
+        for (auto &&interceptor : interceptorSet) {
+            if (!((NetworkInterceptor *) &(*interceptor))->AcceptAfter(client)) {
                 return false;
             }
         }

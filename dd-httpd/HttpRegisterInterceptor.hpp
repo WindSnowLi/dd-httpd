@@ -23,8 +23,8 @@ public:
      * @return false 拒绝
      */
     bool VerifyBefore(std::shared_ptr<HttpRequest> request, std::shared_ptr<HttpResponse> response) {
-        for (const Interceptor &interceptor : interceptorSet) {
-            if (!((HttpInterceptor *) &(interceptor))->AcceptBefore(request, response)) {
+        for (const std::shared_ptr<Interceptor>& interceptor : interceptorSet) {
+            if (!((HttpInterceptor *) &(*interceptor))->AcceptBefore(request, response)) {
                 return false;
             }
         }
@@ -40,8 +40,8 @@ public:
      * @return false 拒绝
      */
     bool VerifyAfter(const std::shared_ptr<HttpRequest> &request, const std::shared_ptr<HttpResponse> &response) {
-        for (auto &&interceptor : interceptorSet) {
-            if (!((HttpInterceptor *) &(interceptor))->AcceptAfter(request, response)) {
+        for (const std::shared_ptr<Interceptor>& interceptor : interceptorSet) {
+            if (!((HttpInterceptor *) &(*interceptor))->AcceptAfter(request, response)) {
                 return false;
             }
         }

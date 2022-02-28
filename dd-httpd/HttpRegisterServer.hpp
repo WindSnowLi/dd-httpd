@@ -34,6 +34,8 @@ protected:
     std::map<std::string, std::tuple<std::regex, std::function<void(HttpRequest &, HttpResponse &)>>> registerHeadMap;
 
     std::string rootPath{"./"};
+
+    bool disableFileServer = false;
 public:
 
     void SetRootPath(const std::string &path) {
@@ -41,10 +43,14 @@ public:
             return;
         }
         this->rootPath = path;
-        StrUtil::ReplaceChar(this->rootPath, '\\', '/');
+        StrUtils::ReplaceChar(this->rootPath, '\\', '/');
         if (rootPath.back() == '/') {
-            rootPath.erase(rootPath.back());
+            rootPath.pop_back();
         }
+    }
+
+    void EnableFileServer(bool s = true) {
+        disableFileServer = s;
     }
 
 protected:
@@ -64,11 +70,16 @@ protected:
             sv = std::string_view(request->GetUrl().c_str(), index);
         }
         for (auto &&i : funMap) {
-            if ([&](std::pair<const std::string, std::tuple<std::regex, std::function<void(HttpRequest &,
-                                                                                           HttpResponse &)>>> &index) {
+            if ([&](
+                    std::pair<const std::string,
+                            std::tuple<std::regex,
+                                    std::function<void(HttpRequest &, HttpResponse &)>
+                            >
+                    > &index) {
                 std::smatch results;
                 std::string urlRegex(sv);
                 if (std::regex_match(urlRegex, results, std::get<0>(index.second))) {
+                    response->SetCode(OK);
                     std::get<1>(index.second)(*request, *response);
                     return true;
                 }
@@ -77,10 +88,11 @@ protected:
                 return true;
             }
         }
+        response->SetCode(NOT_FOUNT);
         return false;
     }
 
-    static void GetFile(const std::shared_ptr<HttpRequest> &request, const std::shared_ptr<HttpResponse> &response,
+    static bool GetFile(const std::shared_ptr<HttpRequest> &request, const std::shared_ptr<HttpResponse> &response,
                         const std::string &path) {
         std::string_view sv = request->GetUrl();
         size_t index;
@@ -88,6 +100,7 @@ protected:
             sv = std::string_view(request->GetUrl().c_str(), index);
         }
         request->SetFilePath(path + std::string(sv));
+        return FileUtils::ExistFile(request->GetFilePath());
     }
 
 public:
@@ -117,7 +130,7 @@ public:
     }
 
     void RegisterHead(const std::string &url, const std::function<void(HttpRequest &, HttpResponse &)> &callback) {
-        registerPostMap.insert(std::make_pair(url,
+        registerHeadMap.insert(std::make_pair(url,
                                               std::tuple<std::regex, std::function<void(HttpRequest &,
                                                                                         HttpResponse &)>>(
                                                       std::regex(url), callback)));
@@ -129,22 +142,21 @@ public:
      * @param request 请求对象智能指针
      * @param response 应答对象智能指针
      */
-    void MapRequest(const std::shared_ptr<HttpRequest> &request, const std::shared_ptr<HttpResponse> &response) {
+    bool MapRequest(const std::shared_ptr<HttpRequest> &request, const std::shared_ptr<HttpResponse> &response) {
+        bool flag = false;
         switch (request->GetRequestMethod()) {
             case RequestMethod::GET:
-                if (!Execute(request, response, registerGetMap)) {
-                    GetFile(request, response, rootPath);
-                }
+                flag = Execute(request, response, registerGetMap) ||
+                       (!disableFileServer || GetFile(request, response, rootPath));
                 break;
             case RequestMethod::POST:
-                Execute(request, response, registerPostMap);
+                flag = Execute(request, response, registerPostMap);
                 break;
             case RequestMethod::HEAD:
-                if (!Execute(request, response, registerHeadMap)) {
-                    GetFile(request, response, rootPath);
-                }
+                flag = Execute(request, response, registerHeadMap) ||
+                       (!disableFileServer || GetFile(request, response, rootPath));
                 break;
         }
+        return flag;
     }
-
 };

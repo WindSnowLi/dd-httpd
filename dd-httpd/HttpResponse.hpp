@@ -3,48 +3,53 @@
 #include <map>
 #include <string>
 #include <sstream>
+#include <fstream>
 #include <algorithm>
 
+#include "Utils.hpp"
 #include "BaseInfo.hpp"
-
-#ifndef NOT_FOUNT
-#define NOT_FOUNT 404
-#endif
 
 class HttpResponse {
 protected:
     std::string protocol{PROTOCOL};
-    size_t code = 200;
+    size_t code = 404;
     std::map<std::string, std::string> header;
     std::string body{};
-    std::string desc{};
-    RequestMethod requestMethod;
+    std::string desc{RESPONSE_DESC_NOT_FOUND};
     size_t length = 0;
+    std::ifstream fp;
 public:
 
     HttpResponse() = default;
 
+    ~HttpResponse() {
+        if (fp.is_open()) {
+            fp.close();
+        }
+    }
+
     HttpResponse(const HttpResponse &httpResponse) : protocol(httpResponse.protocol), code(httpResponse.code),
                                                      header(httpResponse.header),
-                                                     body(httpResponse.body),
-                                                     requestMethod(httpResponse.requestMethod) {
+                                                     body(httpResponse.body) {
 
-    }
-
-    [[nodiscard]] size_t GetLength() const {
-        return length;
-    }
-
-    void setLength(size_t i) {
-        HttpResponse::length = i;
     }
 
     [[nodiscard]] size_t GetCode() const {
         return code;
     }
 
-    void setCode(size_t c) {
+    void SetCode(size_t c) {
         this->code = c;
+        switch (c) {
+            case 200:
+                this->desc = RESPONSE_DESC_OK;
+                break;
+            case 404:
+                this->desc = RESPONSE_DESC_NOT_FOUND;
+                break;
+            default:
+                this->desc = RESPONSE_DESC_OK;
+        }
     }
 
     [[nodiscard]] const std::string &GetProtocol() const {
@@ -68,20 +73,12 @@ public:
     }
 
     [[nodiscard]] const std::string &GetBody() const {
-        return body;
+        return this->body;
     }
 
     void SetBody(const std::string &str) {
         this->body = str;
         this->length = this->body.size();
-    }
-
-    [[maybe_unused]] [[nodiscard]] RequestMethod GetRequestMethod() const {
-        return requestMethod;
-    }
-
-    void SetRequestMethod(RequestMethod method) {
-        HttpResponse::requestMethod = method;
     }
 
     [[nodiscard]] const std::string &GetDesc() const {
@@ -98,7 +95,11 @@ public:
             << GetCode() << ' '
             << GetDesc() << "\r\n"
             << CONTENT_LENGTH << ':'
-            << GetLength() << "\r\n";
+            << this->length << "\r\n"
+            << RESPONSE_HEAD_SERVER << ':'
+            << SERVER_NAME << "\r\n"
+            << RESPONSE_HEAD_DATE << ':'
+            << DateUtils::GetCurrentDate() << "\r\n";
         for_each(GetHeaderMap().begin(),
                  GetHeaderMap().end(),
                  [&](const std::pair<std::string, std::string> &index) {
@@ -106,6 +107,19 @@ public:
                  });
         rsp << "\r\n";
         return rsp;
+    }
+
+    void SetFp(const std::string &path) {
+        if (fp) {
+            fp.close();
+        }
+        fp.open(path, std::ios::binary | std::ios::in);
+        fp.is_open() ? SetCode(OK) : SetCode(NOT_FOUNT);
+        this->length = FileUtils::GetFileStreamLength(fp);
+    }
+
+    std::ifstream &GetFp() {
+        return fp;
     }
 };
 

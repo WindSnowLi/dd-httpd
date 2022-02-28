@@ -2,9 +2,10 @@
 
 #include <fstream>
 #include <filesystem>
+#include <algorithm>
 #include <string_view>
 
-namespace StrUtil {
+namespace StrUtils {
     std::vector<std::string_view> Split(std::string_view sv, char ch) {
         std::vector<std::string_view> points;
         size_t point = 0;
@@ -64,6 +65,10 @@ namespace StrUtil {
         }
         return true;
     }
+
+    inline void ToLowCase(std::string& sv) {
+        std::transform(sv.begin(), sv.end(), sv.begin(), ::tolower);
+    }
 }
 
 namespace FileUtils {
@@ -91,5 +96,18 @@ namespace FileUtils {
         size_t length = fp.tellg();
         fp.seekg(0, std::ifstream::beg);
         return length;
+    }
+
+    inline bool ExistFile(const std::string &path) {
+        return std::filesystem::exists(path);
+    }
+}
+
+namespace DateUtils {
+    std::string GetCurrentDate() {
+        std::time_t time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+        std::string timeStr = std::ctime(&time);
+        timeStr.resize(timeStr.size() - 1);
+        return timeStr;
     }
 }

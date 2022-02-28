@@ -29,6 +29,7 @@ int main() {
         response.SetBody(std::string("I THINK...!"));
     });
     server->SetRootPath(std::string("."));
+    server->EnableFileServer();
     Http http(52113, server);
     http.Listening();
     return 0;

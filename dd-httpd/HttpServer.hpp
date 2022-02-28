@@ -66,14 +66,17 @@ protected:
         }();
         size_t methodIndex = request->GetUrl().find('?');
         if (methodIndex != -1) {
-            std::vector<std::string_view> &&params = StrUtil::Split({request->GetUrl().c_str() + methodIndex + 1}, '&');
-            request->SetParams(StrUtil::PropertyParse(params));
+            std::vector<std::string_view> &&params = StrUtils::Split({request->GetUrl().c_str() + methodIndex + 1},
+                                                                     '&');
+            request->SetParams(StrUtils::PropertyParse(params));
         }
 
         getline(ss, line);
         while (!line.empty() && line[0] != '\r') {
             size_t split = line.find(':');
-            request->AddHeader(line.substr(0, split), line.substr(split + 1));
+            std::string key = line.substr(0, split);
+            StrUtils::ToLowCase(key);
+            request->AddHeader(key, line.substr(split + 1));
             line.clear();
             getline(ss, line);
         }
@@ -95,38 +98,13 @@ protected:
     static void Response(const std::shared_ptr<NetworkAdapter> &client,
                          const std::shared_ptr<HttpRequest> &request,
                          const std::shared_ptr<HttpResponse> &response) {
-
-        if (!request->GetFilePath().empty()) {
-            auto sysPath = std::filesystem::u8path(request->GetFilePath());
-            if (std::filesystem::exists(sysPath) &&
-                StrUtil::CheckPathDeepin(request->GetFilePath())) {
-                if (std::filesystem::is_directory(sysPath)) {
-                    request->GetFilePath().append("/index.html");
-                }
-                std::ifstream fp;
-                fp.open(request->GetFilePath(), std::ios::in);
-                if (!fp) {
-                    response->setCode(NOT_FOUNT);
-                } else {
-                    response->setLength(FileUtils::GetFileStreamLength(fp));
-                }
-            } else {
-                response->setCode(NOT_FOUNT);
-            }
-        }
-
         client->Write(response->GetHeadStream());
-
-        if (request->GetRequestMethod() == RequestMethod::HEAD) {
-            return;
-        }
-        if (request->GetFilePath().empty()) {
-            client->Write(std::stringstream(response->GetBody()));
-        } else {
-            std::ifstream fp;
-            fp.open(request->GetFilePath(), std::ios::in | std::ios::binary);
-            client->Write(fp);
-            fp.close();
+        if (request->GetRequestMethod() != RequestMethod::HEAD) {
+            if (response->GetFp().is_open()) {
+                client->Write(response->GetFp());
+            } else {
+                client->Write(std::stringstream(response->GetBody()));
+            }
         }
     }
 
@@ -141,15 +119,14 @@ public:
                 [h = httpRegisterInterceptor, s = httpRegisterServer, c = std::move(client)]() {
                     auto request = Parse(c);
                     std::shared_ptr<HttpResponse> response = std::make_shared<HttpResponse>();
-                    response->SetRequestMethod(request->GetRequestMethod());
                     // 验证前置拦截器
-                    if (h != nullptr && h->VerifyBefore(request, response)) {
+                    if (h != nullptr && !h->VerifyBefore(request, response)) {
                         return;
                     }
                     // 映射请求
-                    s == nullptr ? []() {}() : s->MapRequest(request, response);
+                    s == nullptr || s->MapRequest(request, response);
                     // 验证后置拦截器
-                    if (h != nullptr && h->VerifyAfter(request, response)) {
+                    if (h != nullptr && !h->VerifyAfter(request, response)) {
                         return;
                     }
                     Response(c, request, response);
