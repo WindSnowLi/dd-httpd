@@ -99,7 +99,7 @@ namespace FileUtils {
     }
 
     inline bool ExistFile(const std::string &path) {
-        return std::filesystem::exists(path);
+        return std::filesystem::exists(std::filesystem::u8path(path));
     }
 }
 

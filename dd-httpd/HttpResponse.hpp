@@ -5,6 +5,7 @@
 #include <sstream>
 #include <fstream>
 #include <algorithm>
+#include <filesystem>
 
 #include "Utils.hpp"
 #include "BaseInfo.hpp"
@@ -113,7 +114,7 @@ public:
         if (fp) {
             fp.close();
         }
-        fp.open(path, std::ios::binary | std::ios::in);
+        fp.open(std::filesystem::u8path(path), std::ios::binary | std::ios::in);
         fp.is_open() ? SetCode(OK) : SetCode(NOT_FOUNT);
         this->length = FileUtils::GetFileStreamLength(fp);
     }
