@@ -2,6 +2,8 @@
 
 #include <sstream>
 #include <fstream>
+#include <tuple>
+
 #include "NetworkAdapter.hpp"
 
 #ifdef _WIN32
@@ -60,13 +62,13 @@ public:
      *
      * @return std::stringstream 读取完整的字符串流
      */
-    std::stringstream Read() override {
+    std::tuple<std::stringstream, bool> Read() override {
         int len;
         char buff[1024]{0};
-        std::stringstream ss;
+        std::stringstream ss{};
         while ((len = recv(this->socket, buff, sizeof buff, 0)) != 0) {
             if (len == SOCKET_ERROR) {
-                throw "Recv Error";
+                return std::tuple<std::stringstream, int>(nullptr, false);
             }
             ss << buff;
             // 剩余
@@ -76,7 +78,7 @@ public:
             }
             memset(buff, 0, sizeof buff);
         }
-        return ss;
+        return std::tuple<std::stringstream, int>(std::move(ss), true);
     }
 
     /**

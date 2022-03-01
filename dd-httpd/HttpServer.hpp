@@ -47,7 +47,11 @@ protected:
      * @return std::shared_ptr<HttpRequest>
      */
     static std::shared_ptr<HttpRequest> Parse(const std::shared_ptr<NetworkAdapter> &client) {
-        std::stringstream &&ss = client->Read();
+        auto &&rs = client->Read();
+        if (!std::get<1>(rs)) {
+            return nullptr;
+        }
+        std::stringstream &ss = std::get<0>(rs);
         std::string line{};
         getline(ss, line);
         std::shared_ptr<HttpRequest> request = [&]() {
@@ -95,9 +99,15 @@ protected:
      * @param client 网络适配器
      * @param response 应答体
      */
-    static void Response(const std::shared_ptr<NetworkAdapter> &client,
+    static bool Response(const std::shared_ptr<NetworkAdapter> &client,
                          const std::shared_ptr<HttpRequest> &request,
                          const std::shared_ptr<HttpResponse> &response) {
+        if (request->GetHeader()[CONNECTION] == CLOSE) {
+            response->GetHeader()[CONNECTION] = CLOSE;
+        } else {
+            response->GetHeader()[CONNECTION] = KEEP_ALIVE;
+        }
+
         client->Write(response->GetHeadStream());
         if (request->GetRequestMethod() != RequestMethod::HEAD) {
             if (response->GetFp().is_open()) {
@@ -106,6 +116,7 @@ protected:
                 client->Write(std::stringstream(response->GetBody()));
             }
         }
+        return response->GetHeader()[CONNECTION] == KEEP_ALIVE;
     }
 
 public:
@@ -117,19 +128,27 @@ public:
     void AcceptHttp(std::shared_ptr<NetworkAdapter> client) {
         threadPool->AddTask(
                 [h = httpRegisterInterceptor, s = httpRegisterServer, c = std::move(client)]() {
-                    auto request = Parse(c);
-                    std::shared_ptr<HttpResponse> response = std::make_shared<HttpResponse>();
-                    // 验证前置拦截器
-                    if (h != nullptr && !h->VerifyBefore(request, response)) {
-                        return;
+                    while (true) {
+                        auto request = Parse(c);
+                        if (nullptr == request) {
+                            break;
+                        }
+                        std::shared_ptr<HttpResponse> response = std::make_shared<HttpResponse>();
+                        // 验证前置拦截器
+                        if (h == nullptr || h->VerifyBefore(request, response)) {
+                            // 映射请求
+                            s == nullptr || s->MapRequest(request, response);
+                            // 验证后置拦截器
+                            if (h != nullptr && !h->VerifyAfter(request, response)) {
+                                response->SetCode(FORBIDDEN);
+                            }
+                        } else {
+                            response->SetCode(FORBIDDEN);
+                        }
+                        if (!Response(c, request, response)) {
+                            break;
+                        }
                     }
-                    // 映射请求
-                    s == nullptr || s->MapRequest(request, response);
-                    // 验证后置拦截器
-                    if (h != nullptr && !h->VerifyAfter(request, response)) {
-                        return;
-                    }
-                    Response(c, request, response);
                 });
     }
 };

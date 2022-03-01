@@ -1,7 +1,7 @@
 #pragma once
 
 #ifndef PROTOCOL
-#define PROTOCOL "HTTP/1.0"
+#define PROTOCOL "HTTP/1.1"
 #endif
 
 #ifndef SERVER_NAME
@@ -14,6 +14,14 @@
 
 #ifndef OK
 #define OK 200
+#endif
+
+#ifndef FORBIDDEN
+#define FORBIDDEN 403
+#endif
+
+#ifndef RESPONSE_DESC_FORBIDDEN
+#define RESPONSE_DESC_FORBIDDEN "Forbidden"
 #endif
 
 #ifndef CONTENT_LENGTH
@@ -35,4 +43,16 @@
 
 #ifndef RESPONSE_HEAD_SERVER
 #define RESPONSE_HEAD_SERVER "server"
+#endif
+
+#ifndef CONNECTION
+#define CONNECTION "Connection"
+#endif
+
+#ifndef KEEP_ALIVE
+#define KEEP_ALIVE "keep-alive"
+#endif
+
+#ifndef CLOSE
+#define CLOSE "close"
 #endif

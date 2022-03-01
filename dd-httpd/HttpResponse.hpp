@@ -61,8 +61,8 @@ public:
         this->header.insert(std::make_pair(key, value));
     }
 
-    [[maybe_unused]] [[nodiscard]] const std::string &GetHeader(const std::string &key) const {
-        return this->header.at(key);
+    [[maybe_unused]] [[nodiscard]] std::map<std::string, std::string>& GetHeader() {
+        return this->header;
     }
 
     [[maybe_unused]] void SetHeaderMap(const std::map<std::string, std::string> &map) {

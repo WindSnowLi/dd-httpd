@@ -64,7 +64,7 @@ public:
         protocol = p;
     }
 
-    [[maybe_unused]] [[nodiscard]] const std::map<std::string, std::string> &GetHeader() const {
+    [[maybe_unused]] [[nodiscard]] std::map<std::string, std::string> &GetHeader() {
         return header;
     }
 

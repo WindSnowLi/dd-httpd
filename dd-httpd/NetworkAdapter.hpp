@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <tuple>
 
 class NetworkAdapter {
 public:
@@ -37,7 +38,7 @@ public:
      *
      * @return std::stringstream 读取完整的字符串流
      */
-    virtual std::stringstream Read() = 0;
+    virtual std::tuple<std::stringstream, bool> Read() = 0;
 
     /**
      * @brief 写入字符串流对象
