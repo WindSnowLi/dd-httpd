@@ -14,7 +14,7 @@ class HttpResponse {
 protected:
     std::string protocol{PROTOCOL};
     size_t code = 404;
-    std::map<std::string, std::string> header;
+    std::map<std::string, std::string> header{{CONTENT_TYPE, TEXT_PLAIN}};
     std::string body{};
     std::string desc{RESPONSE_DESC_NOT_FOUND};
     size_t length = 0;
@@ -61,7 +61,7 @@ public:
         this->header.insert(std::make_pair(key, value));
     }
 
-    [[maybe_unused]] [[nodiscard]] std::map<std::string, std::string>& GetHeader() {
+    [[maybe_unused]] [[nodiscard]] std::map<std::string, std::string> &GetHeader() {
         return this->header;
     }
 
@@ -117,6 +117,7 @@ public:
         fp.open(std::filesystem::u8path(path), std::ios::binary | std::ios::in);
         fp.is_open() ? SetCode(OK) : SetCode(NOT_FOUNT);
         this->length = FileUtils::GetFileStreamLength(fp);
+        this->header[CONTENT_TYPE] = FileUtils::GetContentType(FileUtils::GetFileTypeName(path));
     }
 
     std::ifstream &GetFp() {

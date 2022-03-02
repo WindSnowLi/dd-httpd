@@ -1,7 +1,7 @@
 #pragma once
 
 #ifndef PROTOCOL
-#define PROTOCOL "HTTP/1.1"
+#define PROTOCOL "HTTP/1.0"
 #endif
 
 #ifndef SERVER_NAME
@@ -28,6 +28,10 @@
 #define CONTENT_LENGTH "content-length"
 #endif
 
+#ifndef CONTENT_TYPE
+#define CONTENT_TYPE "content-type"
+#endif
+
 #ifndef RESPONSE_DESC_OK
 #define RESPONSE_DESC_OK "OK"
 #endif
@@ -46,7 +50,7 @@
 #endif
 
 #ifndef CONNECTION
-#define CONNECTION "Connection"
+#define CONNECTION "connection"
 #endif
 
 #ifndef KEEP_ALIVE
@@ -55,4 +59,8 @@
 
 #ifndef CLOSE
 #define CLOSE "close"
+#endif
+
+#ifndef TEXT_PLAIN
+#define TEXT_PLAIN "text/plain"
 #endif
