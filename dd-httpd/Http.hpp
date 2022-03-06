@@ -57,48 +57,95 @@ protected:
 	 */
 	std::shared_ptr<HttpServer> httpServer;
 public:
+	Http() = default;
+
 	/**
 	 * @brief Construct a new Http object
 	 *
-	 * @param httpRegisterServer 使用注册器
+	 * @param httpRegisterServer 服务注册器
 	 */
-	Http(int port,
-		std::shared_ptr<HttpRegisterServer> httpRegisterServer,
-		std::shared_ptr<NetworkAdapter> netWorkAdapter =
-		std::make_shared<SocketNetworkAdapter>(),
-		std::shared_ptr<HttpRegisterInterceptor> httpRegisterInterceptor =
-		std::make_shared<HttpRegisterInterceptor>()) :
-		port(port),
-		httpRegisterServer(std::move(httpRegisterServer)),
-		networkAdapter(std::move(netWorkAdapter)),
-		httpRegisterInterceptor(std::move(httpRegisterInterceptor)) {
-	}
+	Http(int port, std::shared_ptr<HttpRegisterServer> registerServer) : port(port),
+		httpRegisterServer(
+			std::move(registerServer)) {}
 
 	/**
 	 * @brief 监听端口
 	 *
 	 */
 	[[noreturn]] void Listening() {
-		if (httpServer == nullptr) {
-			httpServer = std::make_shared<HttpServer>();
-			httpServer->httpRegisterInterceptor = httpRegisterInterceptor;
-			httpServer->httpRegisterInterceptor->Register(
-				std::make_shared<HttpGetFileInterceptor>(1, "HttpGetFileInterceptor"));
-			httpServer->httpRegisterServer = httpRegisterServer;
-			httpServer->threadPool = std::make_shared<ThreadPool>();
-		}
-		if (networkServer == nullptr) {
-			networkServer = std::make_shared<NetworkServer>();
-			networkServer->networkRegisterInterceptor = networkRegisterInterceptor;
-			networkServer->threadPool = std::make_shared<ThreadPool>();
-			networkServer->httpServer = httpServer;
-		}
+		httpServer == nullptr ? httpServer = std::make_shared<HttpServer>() : 0;
+		httpServer->threadPool == nullptr ? (httpServer->threadPool = std::make_shared<ThreadPool>()) : 0;
 
+		httpRegisterInterceptor = httpServer->httpRegisterInterceptor =
+			(httpRegisterInterceptor == nullptr ? std::make_shared<HttpRegisterInterceptor>() : httpRegisterInterceptor);
+
+		httpRegisterInterceptor->Register(std::make_shared<HttpGetFileInterceptor>(1, "HttpGetFileInterceptor"));
+
+		httpRegisterServer = httpServer->httpRegisterServer =
+			(httpRegisterServer == nullptr ? std::make_shared<HttpRegisterServer>() : httpRegisterServer);
+
+
+		networkServer = (networkServer == nullptr ? std::make_shared<NetworkServer>() : networkServer);
+		networkServer->threadPool = std::make_shared<ThreadPool>();
+		networkRegisterInterceptor = networkServer->networkRegisterInterceptor =
+			(networkRegisterInterceptor == nullptr ? std::make_shared<NetworkRegisterInterceptor>() : 0);
+
+		networkServer->httpServer = httpServer;
+		networkAdapter == nullptr ? networkAdapter = std::make_shared<SocketNetworkAdapter>() : 0;
 		networkAdapter->port = port;
 		networkAdapter->Listen();
 		while (true) {
 			std::shared_ptr<NetworkAdapter> client(networkAdapter->Accept());
 			networkServer->Accept(client);
 		}
+		networkAdapter->Shutdown();
+	}
+
+	[[nodiscard]] const std::shared_ptr<HttpRegisterServer>& GetHttpRegisterServer() const {
+		return httpRegisterServer;
+	}
+
+	void SetHttpRegisterServer(const std::shared_ptr<HttpRegisterServer>& registerServer) {
+		Http::httpRegisterServer = registerServer;
+	}
+
+	[[nodiscard]] const std::shared_ptr<HttpRegisterInterceptor>& GetHttpRegisterInterceptor() const {
+		return httpRegisterInterceptor;
+	}
+
+	void SetHttpRegisterInterceptor(const std::shared_ptr<HttpRegisterInterceptor>& registerInterceptor) {
+		Http::httpRegisterInterceptor = registerInterceptor;
+	}
+
+	[[nodiscard]] const std::shared_ptr<NetworkRegisterInterceptor>& GetNetworkRegisterInterceptor() const {
+		return networkRegisterInterceptor;
+	}
+
+	void SetNetworkRegisterInterceptor(const std::shared_ptr<NetworkRegisterInterceptor>& registerInterceptor) {
+		Http::networkRegisterInterceptor = registerInterceptor;
+	}
+
+	[[nodiscard]] const std::shared_ptr<NetworkAdapter>& GetNetworkAdapter() const {
+		return networkAdapter;
+	}
+
+	void SetNetworkAdapter(const std::shared_ptr<NetworkAdapter>& adapter) {
+		Http::networkAdapter = adapter;
+	}
+
+	[[nodiscard]] int GetPort() const {
+		return port;
+	}
+
+	void SetPort1(int p) {
+		Http::port = p;
+	}
+
+	[[nodiscard]] const std::shared_ptr<NetworkServer>& GetNetworkServer() const {
+		return networkServer;
+	}
+
+	void SetNetworkServer(const std::shared_ptr<NetworkServer>& server) {
+		Http::networkServer = server;
 	}
 };

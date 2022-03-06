@@ -1,7 +1,7 @@
 #pragma once
 
 #ifndef PROTOCOL
-#define PROTOCOL "HTTP/1.0"
+#define PROTOCOL "HTTP/1.1"
 #endif
 
 #ifndef SERVER_NAME
@@ -63,4 +63,40 @@
 
 #ifndef TEXT_PLAIN
 #define TEXT_PLAIN "text/plain"
+#endif
+
+#ifndef RANGE
+#define RANGE "range"
+#endif
+
+#ifndef PARTIAL_CONTENT
+#define PARTIAL_CONTENT "Partial Content"
+#endif
+
+#ifndef PARTIAL_CONTENT_CODE
+#define PARTIAL_CONTENT_CODE 206
+#endif
+
+#ifndef REQUESTED_RANGE_NOT_SATISFIABLE
+#define REQUESTED_RANGE_NOT_SATISFIABLE "Requested Range Not Satisfiable"
+#endif
+
+#ifndef REQUESTED_RANGE_NOT_SATISFIABLE_CODE
+#define REQUESTED_RANGE_NOT_SATISFIABLE_CODE 416
+#endif
+
+#ifndef MULTIPART_BYTERANGES
+#define MULTIPART_BYTERANGES "multipart/byteranges"
+#endif
+
+#ifndef ACCEPT_RANGES
+#define ACCEPT_RANGES "accept-ranges"
+#endif
+
+#ifndef BYTES
+#define BYTES "bytes"
+#endif
+
+#ifndef CONTENT_RANGE
+#define CONTENT_RANGE "content-range"
 #endif

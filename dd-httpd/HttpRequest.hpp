@@ -39,6 +39,8 @@ protected:
     std::map<std::string, std::string> params;
 
     std::string filePath{};
+
+    std::vector<std::pair<long long, long long>> partTable;
 public:
     [[nodiscard]] RequestMethod GetRequestMethod() const {
         return requestMethod;
@@ -98,5 +100,12 @@ public:
 
     void AddHeader(const std::string &key, const std::string &value) {
         this->header.insert(std::make_pair(key, value));
+    }
+
+    void SetPartTable(const std::vector<std::pair<long long, long long>>& t) {
+        this->partTable = t;
+    }
+    const std::vector<std::pair<long long, long long>>& GetPartTable() {
+        return this->partTable;
     }
 };
