@@ -65,7 +65,7 @@ public:
 	std::tuple<std::stringstream, bool> Read() override {
 		int len;
 		char buff[1024]{ 0 };
-		std::stringstream ss;
+		std::stringstream ss{};
 		while ((len = recv(this->socket, buff, sizeof buff, 0)) != 0) {
 			if (len == SOCKET_ERROR) {
 				return std::tuple<std::stringstream, int>(std::move(ss), false);
@@ -94,18 +94,30 @@ public:
 		if (!fp) {
 			return;
 		}
-		while (size_t rLen = fp.readsome(buff, sizeof buff)) {
-			send(this->socket, buff, (int)rLen, 0);
+		while (true)
+		{
+			fp.read(buff, sizeof buff);
+			if (fp.gcount() == 0)
+			{
+				break;
+			}
+			send(this->socket, buff, (int)fp.gcount(), 0);
 		}
 	}
+
 	void Write(std::ifstream& fp, long long start, long long end) override {
-        if (!fp || (start >= end)) return;
+		if (!fp || (start >= end)) return;
 		fp.seekg(start, std::ifstream::beg);
 		while (start < end) {
-		    long long readLength = (start + MAX_BUFF <= end ? MAX_BUFF : (end - start));
-		    long long rLen = fp.readsome(buff, readLength);
+			long long readLength = (start + MAX_BUFF <= end ? MAX_BUFF : (end - start));
+			fp.read(buff, readLength);
+			long long rLen = fp.gcount();
+			if (rLen == 0)
+			{
+				break;
+			}
 			send(this->socket, buff, (int)rLen, 0);
-			start += readLength;
+			start += rLen;
 		}
 	}
 	/**
