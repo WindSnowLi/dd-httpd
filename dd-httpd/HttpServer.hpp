@@ -223,7 +223,7 @@ public:
      */
     void AcceptHttp(std::shared_ptr<NetworkAdapter> client) {
         threadPool->AddTask(
-                [hi = httpRegisterInterceptor, s = httpRegisterServer, c = std::move(client)]() {
+                [hi = httpRegisterInterceptor, s = httpRegisterServer, c = client]() {
                     while (true) {
                         auto request = Parse(c);
                         if (nullptr == request) {

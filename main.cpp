@@ -28,7 +28,7 @@ int main() {
         }
         response.SetBody(std::string("I THINK...!"));
     });
-    server->SetRootPath(std::string("."));
+    server->SetRootPath(std::string("D:\\迅雷下载"));
     server->EnableFileServer();
     Http http(52113, server);
     http.Listening();

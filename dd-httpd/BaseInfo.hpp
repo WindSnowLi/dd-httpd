@@ -25,11 +25,11 @@
 #endif
 
 #ifndef CONTENT_LENGTH
-#define CONTENT_LENGTH "content-length"
+#define CONTENT_LENGTH "Content-Length"
 #endif
 
 #ifndef CONTENT_TYPE
-#define CONTENT_TYPE "content-type"
+#define CONTENT_TYPE "Content-Type"
 #endif
 
 #ifndef RESPONSE_DESC_OK
@@ -42,23 +42,23 @@
 
 
 #ifndef RESPONSE_HEAD_DATE
-#define RESPONSE_HEAD_DATE "data"
+#define RESPONSE_HEAD_DATE "Date"
 #endif
 
 #ifndef RESPONSE_HEAD_SERVER
-#define RESPONSE_HEAD_SERVER "server"
+#define RESPONSE_HEAD_SERVER "Server"
 #endif
 
 #ifndef CONNECTION
-#define CONNECTION "connection"
+#define CONNECTION "Connection"
 #endif
 
 #ifndef KEEP_ALIVE
-#define KEEP_ALIVE "keep-alive"
+#define KEEP_ALIVE "Keep-Alive"
 #endif
 
 #ifndef CLOSE
-#define CLOSE "close"
+#define CLOSE "Close"
 #endif
 
 #ifndef TEXT_PLAIN
@@ -66,7 +66,7 @@
 #endif
 
 #ifndef RANGE
-#define RANGE "range"
+#define RANGE "Range"
 #endif
 
 #ifndef PARTIAL_CONTENT
@@ -90,7 +90,7 @@
 #endif
 
 #ifndef ACCEPT_RANGES
-#define ACCEPT_RANGES "accept-ranges"
+#define ACCEPT_RANGES "Accept-Ranges"
 #endif
 
 #ifndef BYTES
@@ -98,5 +98,5 @@
 #endif
 
 #ifndef CONTENT_RANGE
-#define CONTENT_RANGE "content-range"
+#define CONTENT_RANGE "Content-Range"
 #endif
