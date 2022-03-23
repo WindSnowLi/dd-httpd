@@ -28,7 +28,7 @@ int main() {
         }
         response.SetBody(std::string("I THINK...!"));
     });
-    server->SetRootPath(std::string("D:\\迅雷下载"));
+    server->SetRootPath(std::string("E:\\Desktop\\毕设\\vue-element-admin\\dist"));
     server->EnableFileServer();
     Http http(52113, server);
     http.Listening();

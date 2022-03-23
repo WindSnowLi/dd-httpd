@@ -10,13 +10,19 @@ namespace StrUtils {
 	std::vector<std::string_view> Split(std::string_view sv, char ch) {
 		std::vector<std::string_view> points;
 		size_t point = 0;
-		for (size_t i = 0; i < sv.length(); i++) {
+		for (size_t i = 0; i < sv.size(); i++) {
 			if (sv[i] == ch) {
 				points.emplace_back(std::string_view(&sv[point], i - point));
 				point = i + 1;
 			}
 		}
-		points.emplace_back(std::string_view(&sv[point], sv.length() - point));
+		if (point >= sv.size())
+		{
+			points.emplace_back(std::string_view(&sv[point - 1], sv.size() - point));
+		}
+		else {
+			points.emplace_back(std::string_view(&sv[point], sv.size() - point));
+		}
 		return points;
 	}
 
@@ -235,7 +241,7 @@ namespace FileUtils {
 
 	std::string GetFileTypeName(const std::string& name) {
 		std::string_view sv(name);
-		size_t index = sv.find('.');
+		size_t index = sv.rfind('.');
 		if (index != -1) {
 			return std::string(std::string_view(name.c_str() + index + 1));
 		}
