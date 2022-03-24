@@ -62,7 +62,7 @@ protected:
 
             std::string_view sv2(line.c_str() + first + 1);
             size_t second = sv2.find(' ');
-            r->SetUrl(std::string(sv2.substr(0, second)));
+            r->SetUrl(std::string(StrUtils::Split(std::string(sv2.substr(0, second)), '#')[0]));
 
             std::string_view sv3(line.c_str() + first + 1 + second + 1);
             r->SetProtocol(std::string(sv3.substr(0)));

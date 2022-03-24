@@ -65,7 +65,6 @@ public:
      */
     std::tuple<std::stringstream, bool> Read() override {
         int len;
-        char buff[1024]{0};
         std::stringstream ss{};
         while ((len = recv(this->socket, buff, sizeof buff, 0)) != 0) {
             if (len == SOCKET_ERROR) {
@@ -123,7 +122,6 @@ public:
             if (rLen == 0) {
                 break;
             }
-            std::this_thread::yield();
             auto sd = send(this->socket, buff, (int) rLen, 0);
             if (SOCKET_ERROR == sd) {
                 auto err = WSAGetLastError();
@@ -186,5 +184,26 @@ public:
 
     void Shutdown() override {
         closesocket(socket);
+    }
+
+    static fd_set &getFS() {
+        static fd_set set;
+        return set;
+    }
+
+    static void AddFD(unsigned long long &fd) {
+        FD_SET(fd, &getFS());
+    }
+
+    static void ZeroFD() {
+        FD_ZERO(&getFS());
+    }
+
+    static void ClrFD(unsigned long long &fd) {
+        FD_CLR(fd, &getFS());
+    }
+
+    static bool IsSet(unsigned long long &fd) {
+        return FD_ISSET(fd, &getFS());
     }
 };
